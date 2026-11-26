@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Mis Colchas</string>
+    <string name="app_subtitle">Inventario y libreta de cobros</string>
+    <string name="nav_inicio">Inicio</string>
+    <string name="nav_colchas">Colchas</string>
+    <string name="nav_cobros">Cobros</string>
+    <string name="nav_historial">Historial</string>
+    <string name="auth_title">Libreta de Colchas y Cobros</string>
+    <string name="auth_subtitle">Guarda tus modelos, ventas en abonos y cobros en la nube para no perder ningún dato.</string>
+    <string name="auth_button_google">Entrar con Google</string>
+    <string name="error_generic">Ocurrió un problema. Intenta de nuevo.</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_save">Guardar</string>
+</resources>

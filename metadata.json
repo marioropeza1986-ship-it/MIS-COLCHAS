@@ -1,0 +1,6 @@
+{
+  "name": "Mis Colchas",
+  "description": "App sencilla y practica para el inventario de colchas, ventas de contado o en abonos y libreta de cobros pensada para personas mayores y negocio familiar.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

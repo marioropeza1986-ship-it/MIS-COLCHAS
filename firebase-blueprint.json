@@ -1,0 +1,128 @@
+{
+  "entities": {
+    "Producto": {
+      "title": "Producto",
+      "description": "Modelo de colcha en inventario con ubicación, foto opcional, costo y precio de venta.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "sku": { "type": "string" },
+        "modelo": { "type": "string" },
+        "tamano": { "type": "string" },
+        "color": { "type": "string" },
+        "ubicacion": { "type": "string" },
+        "fotoBase64": { "type": "string" },
+        "stockInicial": { "type": "integer" },
+        "costo": { "type": "number" },
+        "precio": { "type": "number" },
+        "stockMinimo": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "userId",
+        "sku",
+        "modelo",
+        "tamano",
+        "color",
+        "ubicacion",
+        "stockInicial",
+        "costo",
+        "precio",
+        "stockMinimo",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "EntradaStock": {
+      "title": "EntradaStock",
+      "description": "Registro de compra o reabastecimiento de piezas para un modelo existente.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "fecha": { "type": "string" },
+        "productoId": { "type": "string" },
+        "sku": { "type": "string" },
+        "modelo": { "type": "string" },
+        "cantidad": { "type": "integer" },
+        "costo": { "type": "number" },
+        "proveedor": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "userId",
+        "fecha",
+        "productoId",
+        "sku",
+        "modelo",
+        "cantidad",
+        "costo",
+        "proveedor",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Venta": {
+      "title": "Venta",
+      "description": "Venta de contado o en abonos con saldo pendiente, fecha de próximo cobro e historial de pagos.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "fecha": { "type": "string" },
+        "productoId": { "type": "string" },
+        "sku": { "type": "string" },
+        "modelo": { "type": "string" },
+        "cantidad": { "type": "integer" },
+        "precioUnitario": { "type": "number" },
+        "costoUnitario": { "type": "number" },
+        "importeTotal": { "type": "number" },
+        "pagado": { "type": "number" },
+        "saldo": { "type": "number" },
+        "modalidad": { "type": "string", "enum": ["contado", "pagos"] },
+        "proximoCobro": { "type": "string" },
+        "clienteNombre": { "type": "string" },
+        "clienteTelefono": { "type": "string" },
+        "nota": { "type": "string" },
+        "historialPagos": { "type": "array" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "userId",
+        "fecha",
+        "productoId",
+        "sku",
+        "modelo",
+        "cantidad",
+        "precioUnitario",
+        "costoUnitario",
+        "importeTotal",
+        "pagado",
+        "saldo",
+        "modalidad",
+        "proximoCobro",
+        "clienteNombre",
+        "clienteTelefono",
+        "nota",
+        "historialPagos",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/productos/{productoId}": {
+      "schema": { "$ref": "#/entities/Producto" },
+      "description": "Catálogo e inventario de modelos de colchas del usuario."
+    },
+    "/users/{userId}/entradas/{entradaId}": {
+      "schema": { "$ref": "#/entities/EntradaStock" },
+      "description": "Historial de compras y reabastecimientos de inventario."
+    },
+    "/users/{userId}/ventas/{ventaId}": {
+      "schema": { "$ref": "#/entities/Venta" },
+      "description": "Ventas y libreta digital de clientas con abonos y próximo cobro."
+    }
+  }
+}

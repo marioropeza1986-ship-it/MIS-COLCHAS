@@ -1,0 +1,86 @@
+package com.example.ui.theme
+
+import androidx.compose.ui.graphics.Color
+
+// 1. Warm Linen & Terracotta Ledger
+val TerracottaPrimary = Color(0xFFB63E19)
+val TerracottaOnPrimary = Color(0xFFFFFFFF)
+val TerracottaContainer = Color(0xFFFFDBD0)
+val TerracottaOnContainer = Color(0xFF3E0D00)
+
+val SlateSecondary = Color(0xFF3A5A6B)
+val SlateOnSecondary = Color(0xFFFFFFFF)
+val SlateContainer = Color(0xFFD6E6EF)
+val SlateOnContainer = Color(0xFF0E2936)
+
+val EmeraldSuccess = Color(0xFF1B7A46)
+val EmeraldOnSuccess = Color(0xFFFFFFFF)
+val EmeraldContainer = Color(0xFFD2F3DE)
+val EmeraldOnContainer = Color(0xFF063219)
+
+val AmberWarning = Color(0xFFB86B00)
+val AmberContainer = Color(0xFFFFE7C2)
+val AmberOnContainer = Color(0xFF3D2200)
+
+val CrimsonError = Color(0xFFC62828)
+val CrimsonContainer = Color(0xFFFFDAD6)
+val CrimsonOnContainer = Color(0xFF410002)
+
+val LinenBackground = Color(0xFFFAF6F0)
+val WarmWhiteSurface = Color(0xFFFFFFFF)
+val LinenSurfaceVariant = Color(0xFFF1EAE0)
+val EspressoOnSurface = Color(0xFF1D1916)
+val EspressoMuted = Color(0xFF5D534B)
+val HairlineOutline = Color(0xFFDFD5C8)
+
+// Terracotta Dark
+val DarkBackground = Color(0xFF161311)
+val DarkSurface = Color(0xFF211C19)
+val DarkSurfaceVariant = Color(0xFF2E2723)
+val DarkOnSurface = Color(0xFFF6EFE8)
+val DarkMuted = Color(0xFFC7BBB0)
+val DarkOutline = Color(0xFF473E37)
+val DarkTerracotta = Color(0xFFFF8F6B)
+val DarkTerracottaContainer = Color(0xFF6B220B)
+val DarkEmerald = Color(0xFF6AD997)
+val DarkEmeraldContainer = Color(0xFF124729)
+
+// 2. Azul Clásico (High-contrast Cobalt Blue & Sky White)
+val AzulPrimary = Color(0xFF1565C0)
+val AzulContainer = Color(0xFFD6E8FF)
+val AzulOnContainer = Color(0xFF002755)
+val AzulSecondary = Color(0xFF006978)
+val AzulSecondaryContainer = Color(0xFFCBEBF2)
+val AzulOnSecondaryContainer = Color(0xFF00272E)
+val AzulBackground = Color(0xFFF2F7FD)
+val AzulSurfaceVariant = Color(0xFFE6EFFA)
+val AzulOnSurface = Color(0xFF121C29)
+val AzulMuted = Color(0xFF4F5D6E)
+val AzulOutline = Color(0xFFCCDAE9)
+
+val AzulDarkBackground = Color(0xFF0F1621)
+val AzulDarkSurface = Color(0xFF182232)
+val AzulDarkSurfaceVariant = Color(0xFF223045)
+val AzulDarkPrimary = Color(0xFF7AB8FF)
+val AzulDarkContainer = Color(0xFF0E3C73)
+
+// 3. Estilo Apple (iOS Clean Minimal: #F5F5F7, #0071E3, #34C759, #1D1D1F)
+val AppleBlue = Color(0xFF0071E3)
+val AppleBlueContainer = Color(0xFFE1F0FF)
+val AppleBlueOnContainer = Color(0xFF003670)
+val AppleSlate = Color(0xFF3A3A3C)
+val AppleSlateContainer = Color(0xFFE5E5EA)
+val AppleGreen = Color(0xFF1B8A38)
+val AppleGreenContainer = Color(0xFFD8F6E0)
+val AppleBackground = Color(0xFFF5F5F7)
+val AppleSurfaceVariant = Color(0xFFEFEFF4)
+val AppleText = Color(0xFF1D1D1F)
+val AppleMuted = Color(0xFF6E6E73)
+val AppleOutline = Color(0xFFDCDCE0)
+
+val AppleDarkBackground = Color(0xFF1C1C1E)
+val AppleDarkSurface = Color(0xFF2C2C2E)
+val AppleDarkSurfaceVariant = Color(0xFF3A3A3C)
+val AppleDarkBlue = Color(0xFF0A84FF)
+val AppleDarkGreen = Color(0xFF30D158)
+val AppleDarkOutline = Color(0xFF48484A)

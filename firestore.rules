@@ -1,0 +1,165 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidProducto(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.sku is string && data.sku.size() >= 1 && data.sku.size() <= 40 &&
+             data.modelo is string && data.modelo.size() >= 1 && data.modelo.size() <= 100 &&
+             data.tamano is string && data.tamano.size() >= 1 && data.tamano.size() <= 40 &&
+             data.color is string && data.color.size() <= 60 &&
+             data.ubicacion is string && data.ubicacion.size() >= 1 && data.ubicacion.size() <= 60 &&
+             (!('fotoBase64' in data) || (data.fotoBase64 is string && data.fotoBase64.size() <= 80000)) &&
+             data.stockInicial is int && data.stockInicial >= 0 &&
+             data.costo is number && data.costo >= 0 &&
+             data.precio is number && data.precio >= 0 &&
+             data.stockMinimo is int && data.stockMinimo >= 0 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidEntrada(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.fecha is string && data.fecha.size() >= 1 && data.fecha.size() <= 20 &&
+             data.productoId is string && isValidId(data.productoId) &&
+             data.sku is string && data.sku.size() >= 1 && data.sku.size() <= 40 &&
+             data.modelo is string && data.modelo.size() >= 1 && data.modelo.size() <= 100 &&
+             data.cantidad is int && data.cantidad >= 1 &&
+             data.costo is number && data.costo >= 0 &&
+             data.proveedor is string && data.proveedor.size() <= 100 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidVenta(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.fecha is string && data.fecha.size() >= 1 && data.fecha.size() <= 20 &&
+             data.productoId is string && isValidId(data.productoId) &&
+             data.sku is string && data.sku.size() >= 1 && data.sku.size() <= 40 &&
+             data.modelo is string && data.modelo.size() >= 1 && data.modelo.size() <= 100 &&
+             data.cantidad is int && data.cantidad >= 1 &&
+             data.precioUnitario is number && data.precioUnitario >= 0 &&
+             data.costoUnitario is number && data.costoUnitario >= 0 &&
+             data.importeTotal is number && data.importeTotal >= 0 &&
+             data.pagado is number && data.pagado >= 0 &&
+             data.saldo is number && data.saldo >= 0 &&
+             data.modalidad in ['contado', 'pagos'] &&
+             data.proximoCobro is string && data.proximoCobro.size() <= 20 &&
+             data.clienteNombre is string && data.clienteNombre.size() >= 1 && data.clienteNombre.size() <= 100 &&
+             data.clienteTelefono is string && data.clienteTelefono.size() <= 40 &&
+             data.nota is string && data.nota.size() <= 200 &&
+             data.historialPagos is list && data.historialPagos.size() <= 100 &&
+             (data.historialPagos.size() == 0 || data.historialPagos[0] is map) &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /users/{userId} {
+      match /productos/{productoId} {
+        allow list: if isOwner(userId);
+        allow get: if isOwner(userId) && isValidId(productoId);
+        allow create: if isOwner(userId) &&
+                         isValidId(productoId) &&
+                         incoming().userId == request.auth.uid &&
+                         incoming().keys().hasAll([
+                           'userId', 'sku', 'modelo', 'tamano', 'color', 'ubicacion',
+                           'stockInicial', 'costo', 'precio', 'stockMinimo', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'sku', 'modelo', 'tamano', 'color', 'ubicacion', 'fotoBase64',
+                           'stockInicial', 'costo', 'precio', 'stockMinimo', 'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidProducto(incoming());
+        allow update: if isOwner(userId) &&
+                         isValidId(productoId) &&
+                         isValidProducto(incoming()) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'sku', 'modelo', 'tamano', 'color', 'ubicacion', 'fotoBase64',
+                           'stockInicial', 'costo', 'precio', 'stockMinimo', 'updatedAt'
+                         ]);
+        allow delete: if isOwner(userId) && isValidId(productoId);
+      }
+
+      match /entradas/{entradaId} {
+        allow list: if isOwner(userId);
+        allow get: if isOwner(userId) && isValidId(entradaId);
+        allow create: if isOwner(userId) &&
+                         isValidId(entradaId) &&
+                         incoming().userId == request.auth.uid &&
+                         incoming().keys().hasAll([
+                           'userId', 'fecha', 'productoId', 'sku', 'modelo',
+                           'cantidad', 'costo', 'proveedor', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'fecha', 'productoId', 'sku', 'modelo',
+                           'cantidad', 'costo', 'proveedor', 'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidEntrada(incoming()) &&
+                         exists(/databases/$(database)/documents/users/$(userId)/productos/$(incoming().productoId));
+        allow update: if false;
+        allow delete: if isOwner(userId) && isValidId(entradaId);
+      }
+
+      match /ventas/{ventaId} {
+        allow list: if isOwner(userId);
+        allow get: if isOwner(userId) && isValidId(ventaId);
+        allow create: if isOwner(userId) &&
+                         isValidId(ventaId) &&
+                         incoming().userId == request.auth.uid &&
+                         incoming().keys().hasAll([
+                           'userId', 'fecha', 'productoId', 'sku', 'modelo', 'cantidad',
+                           'precioUnitario', 'costoUnitario', 'importeTotal', 'pagado', 'saldo',
+                           'modalidad', 'proximoCobro', 'clienteNombre', 'clienteTelefono',
+                           'nota', 'historialPagos', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'fecha', 'productoId', 'sku', 'modelo', 'cantidad',
+                           'precioUnitario', 'costoUnitario', 'importeTotal', 'pagado', 'saldo',
+                           'modalidad', 'proximoCobro', 'clienteNombre', 'clienteTelefono',
+                           'nota', 'historialPagos', 'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidVenta(incoming()) &&
+                         exists(/databases/$(database)/documents/users/$(userId)/productos/$(incoming().productoId));
+        allow update: if isOwner(userId) &&
+                         isValidId(ventaId) &&
+                         isValidVenta(incoming()) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().pagado >= existing().pagado &&
+                         incoming().saldo <= existing().saldo &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'pagado', 'saldo', 'proximoCobro', 'historialPagos',
+                           'clienteTelefono', 'nota', 'updatedAt'
+                         ]);
+        allow delete: if isOwner(userId) && isValidId(ventaId);
+      }
+    }
+  }
+}

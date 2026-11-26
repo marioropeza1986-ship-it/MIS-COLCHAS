@@ -1,0 +1,1436 @@
+<!DOCTYPE html> 
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inventario de Colchas y Cobranza</title>
+  <style>
+    :root {
+      --bg: #f5f5f7;
+      --card: rgba(255, 255, 255, 0.88);
+      --card-solid: #ffffff;
+      --text: #1d1d1f;
+      --muted: #86868b;
+      --primary: #0071e3;
+      --primary-hover: #0077ed;
+      --success: #34c759;
+      --warn: #ff9f0a;
+      --danger: #ff3b30;
+      --border: rgba(0, 0, 0, 0.08);
+      --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.03);
+      --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.06);
+    }
+    * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Inter, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding-bottom: 48px;
+      letter-spacing: -0.01em;
+    }
+    header {
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      color: var(--text);
+      padding: 14px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid var(--border);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    header small {
+      color: var(--muted);
+      display: block;
+      font-size: 12px;
+      margin-top: 2px;
+    }
+    .actions-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .btn {
+      border: 1px solid var(--border);
+      background: var(--card-solid);
+      color: var(--text);
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+    .btn:hover { background: #f2f2f7; transform: translateY(-0.5px); }
+    .btn:active { transform: scale(0.98); }
+    .btn.primary { background: var(--primary); color: #fff; border-color: transparent; font-weight: 600; }
+    .btn.primary:hover { background: var(--primary-hover); }
+    .btn.success { background: var(--success); color: #fff; border-color: transparent; font-weight: 600; }
+    .btn.success:hover { filter: brightness(0.95); }
+    .btn.danger { background: rgba(255, 59, 48, 0.1); color: var(--danger); border-color: transparent; }
+    .btn.danger:hover { background: rgba(255, 59, 48, 0.16); }
+
+    .container {
+      max-width: 1140px;
+      margin: 22px auto;
+      padding: 0 18px;
+    }
+    /* Control segmentado estilo iOS */
+    .tabs {
+      display: inline-flex;
+      max-width: 100%;
+      background: rgba(118, 118, 128, 0.12);
+      padding: 4px;
+      border-radius: 14px;
+      gap: 4px;
+      overflow-x: auto;
+      margin-bottom: 20px;
+    }
+    .tab {
+      background: transparent;
+      border: none;
+      color: var(--text);
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-weight: 500;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+    .tab.active {
+      background: #ffffff;
+      color: var(--text);
+      font-weight: 600;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+    .lbl-short { display: none; }
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .kpi {
+      background: var(--card-solid);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 18px 20px;
+      box-shadow: var(--shadow-sm);
+    }
+    .kpi .label { font-size: 12px; font-weight: 500; color: var(--muted); }
+    .kpi .value { font-size: 26px; font-weight: 700; margin-top: 6px; letter-spacing: -0.03em; }
+
+    .card {
+      background: var(--card-solid);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 22px;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow-sm);
+    }
+    .card h2 {
+      margin: 0 0 14px 0;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+      gap: 12px;
+      align-items: end;
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      border-radius: 12px;
+      font-size: 14px;
+      background: #fbfbfd;
+      color: var(--text);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
+    }
+    .table-wrap {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+    th, td {
+      padding: 12px 10px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: #fbfbfd;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+    }
+    tr:last-child td { border-bottom: none; }
+    td.num, th.num { text-align: right; }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge.ok { background: rgba(52, 199, 89, 0.14); color: #1b8a38; }
+    .badge.warn { background: rgba(255, 159, 10, 0.16); color: #b26b00; }
+    .badge.low { background: rgba(255, 59, 48, 0.14); color: #c9251c; }
+    .badge.credito { background: rgba(0, 113, 227, 0.12); color: #005bb5; }
+    .badge.loc { background: rgba(142, 142, 147, 0.14); color: #3a3a3c; cursor: pointer; }
+    .badge.loc:hover { background: rgba(0, 113, 227, 0.14); color: var(--primary); }
+    .thumb-colcha {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      object-fit: cover;
+      border: 1px solid var(--border);
+      cursor: zoom-in;
+      background: #f2f2f7;
+      display: block;
+    }
+    .thumb-placeholder {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      border: 1px dashed rgba(0,0,0,0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: var(--muted);
+      cursor: pointer;
+      background: #fbfbfd;
+    }
+    .money { font-variant-numeric: tabular-nums; }
+    .muted { color: var(--muted); }
+    .section-hidden { display: none !important; }
+
+    /* Estilos del Calendario estilo Apple Calendar */
+    .cal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+    }
+    .cal-day-name {
+      text-align: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      padding: 4px 0;
+    }
+    .cal-cell {
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      border-radius: 14px;
+      min-height: 78px;
+      padding: 8px;
+      background: #fbfbfd;
+      font-size: 12px;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .cal-cell.empty {
+      background: transparent;
+      border-color: transparent;
+    }
+    .cal-cell.today {
+      border: 2px solid var(--primary);
+      background: #ffffff;
+    }
+    .cal-cell.has-cobro {
+      background: rgba(255, 159, 10, 0.12);
+      border-color: rgba(255, 159, 10, 0.45);
+      cursor: pointer;
+    }
+    .cal-cell.has-cobro:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+    .cal-num {
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: block;
+    }
+    .cal-tag {
+      background: var(--warn);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 6px;
+      border-radius: 8px;
+      display: block;
+      margin-top: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Modal estilo iOS Sheet / Dialog */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      padding: 16px;
+    }
+    .modal-box {
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 24px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.18);
+    }
+    /* Notificación flotante tipo Dynamic Island */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(29, 29, 31, 0.92);
+      backdrop-filter: blur(12px);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 500;
+      z-index: 100;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+      transition: opacity 0.3s;
+      white-space: nowrap;
+    }
+    /* En celular las pestañas van abajo, como en las apps */
+    @media (max-width: 640px) {
+      body { padding-bottom: 88px; }
+      .tabs {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 30;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 2px;
+        width: 100%;
+        margin: 0;
+        padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+        border-radius: 0;
+        background: rgba(255, 255, 255, 0.94);
+        backdrop-filter: saturate(180%) blur(20px);
+        -webkit-backdrop-filter: saturate(180%) blur(20px);
+        border-top: 1px solid var(--border);
+        overflow-x: visible;
+      }
+      body.dark .tabs { background: rgba(44, 44, 46, 0.94); }
+      .tab {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        padding: 8px 2px;
+        font-size: 11px;
+        text-align: center;
+        white-space: normal;
+      }
+      .tab-ico { font-size: 18px; line-height: 1; }
+      .lbl-full { display: none; }
+      .lbl-short { display: inline; }
+    }
+
+    /* Modo oscuro */
+    body.dark {
+      --bg: #1c1c1e;
+      --card-solid: #2c2c2e;
+      --text: #f5f5f7;
+      --muted: #98989d;
+      --border: rgba(255, 255, 255, 0.14);
+    }
+    body.dark header { background: rgba(44, 44, 46, 0.8); }
+    body.dark .btn { background: #3a3a3c; color: #f5f5f7; }
+    body.dark .btn:hover { background: #48484a; }
+    body.dark .tabs { background: rgba(118, 118, 128, 0.28); }
+    body.dark .tab.active { background: #48484a; color: #ffffff; }
+    body.dark input, body.dark select { background: #1c1c1e; color: #f5f5f7; border-color: rgba(255, 255, 255, 0.18); }
+    body.dark input:focus, body.dark select:focus { background: #2c2c2e; }
+    body.dark th { background: #1c1c1e; }
+    body.dark .cal-cell { background: #1c1c1e; }
+    body.dark .cal-cell.today { background: #2c2c2e; }
+    body.dark .modal-box { background: #2c2c2e; }
+    body.dark .thumb-placeholder { background: #1c1c1e; }
+    body.dark .toast { background: rgba(242, 242, 247, 0.94); color: #1d1d1f; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>🛏️ Inventario de Colchas y Cobranza</h1>
+      <small>Control de modelos, entradas, ventas a pagos y libreta de cobros</small>
+    </div>
+    <div class="actions-bar">
+      <button class="btn" id="btn-tema" title="Cambiar entre modo claro y oscuro">🌙 Oscuro</button>
+      <button class="btn" id="btn-export-json">💾 Respaldo</button>
+      <label class="btn" style="margin:0; cursor:pointer;">
+        📂 Restaurar <input type="file" id="input-import-json" accept=".json" hidden />
+      </label>
+      <button class="btn" id="btn-export-csv">📊 CSV Inventario</button>
+      <button class="btn danger" id="btn-reset">🔄 Restablecer datos</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="tabs">
+      <button class="tab active" data-tab="inventario"><span class="tab-ico">📦</span><span class="lbl-full">Inventario Actual</span><span class="lbl-short">Inventario</span></button>
+      <button class="tab" data-tab="entradas"><span class="tab-ico">➕</span><span class="lbl-full">Entradas / Compras</span><span class="lbl-short">Entradas</span></button>
+      <button class="tab" data-tab="ventas"><span class="tab-ico">💰</span><span class="lbl-full">Registrar Venta</span><span class="lbl-short">Ventas</span></button>
+      <button class="tab" data-tab="clientes"><span class="tab-ico">👥</span><span class="lbl-full">Clientes / Cobros</span><span class="lbl-short">Clientes</span></button>
+      <button class="tab" data-tab="resumen"><span class="tab-ico">📈</span><span class="lbl-full">Resumen</span><span class="lbl-short">Resumen</span></button>
+    </div>
+
+    <!-- KPIs rápidos -->
+    <div class="kpis">
+      <div class="kpi">
+        <div class="label">Colchas disponibles</div>
+        <div class="value" id="kpi-stock">0</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Valor en inventario (costo)</div>
+        <div class="value money" id="kpi-costo">$0</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Por cobrar (clientas)</div>
+        <div class="value money" id="kpi-por-cobrar" style="color: var(--warn);">$0</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Ganancia bruta acumulada</div>
+        <div class="value money" id="kpi-utilidad" style="color: var(--success);">$0</div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA 1: INVENTARIO -->
+    <section id="tab-inventario" class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+        <div>
+          <h2 style="margin:0;">Inventario por modelo</h2>
+          <small class="muted">Toca la foto para ampliarla o toca la ubicación para cambiarla de lugar</small>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <select id="filtro-ubicacion" style="max-width:190px;">
+            <option value="">📍 Todas las ubicaciones</option>
+            <option value="Estante / Tienda">🏪 Estante / Tienda</option>
+            <option value="Bodega">📦 Bodega</option>
+            <option value="Con mi hermana">👩 Con mi hermana</option>
+          </select>
+          <input type="text" id="buscar-inv" placeholder="Buscar código o modelo..." style="max-width:220px;" />
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table id="tabla-inventario"></table>
+      </div>
+    </section>
+
+    <!-- PESTAÑA 2: ENTRADAS -->
+    <section id="tab-entradas" class="section-hidden">
+      <div class="card">
+        <h2>➕ Reabastecer stock existente</h2>
+        <p class="muted" style="font-size:12px; margin-top:-6px; margin-bottom:12px;">Úsalo cuando compres más piezas de una colcha que <strong>ya existe</strong> en tu tabla.</p>
+        <form id="form-entrada" class="form-grid">
+          <div>
+            <label>Fecha</label>
+            <input type="date" id="e-fecha" required />
+          </div>
+          <div>
+            <label>Modelo de colcha</label>
+            <select id="e-sku" required></select>
+          </div>
+          <div>
+            <label>Cantidad comprada</label>
+            <input type="number" id="e-cantidad" min="1" value="1" required />
+          </div>
+          <div>
+            <label>Costo unitario (MXN)</label>
+            <input type="number" id="e-costo" min="0" step="0.01" required />
+          </div>
+          <div>
+            <label>Proveedor</label>
+            <input type="text" id="e-proveedor" placeholder="Ej. Textil Norte" />
+          </div>
+          <div>
+            <button type="submit" class="btn primary" style="width:100%;">Guardar entrada</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>🆕 Registrar modelo nuevo</h2>
+        <p class="muted" style="font-size:12px; margin-top:-6px; margin-bottom:12px;">Úsalo cuando traigan un modelo o tamaño <strong>totalmente nuevo</strong> que nunca habían vendido.</p>
+        <form id="form-producto" class="form-grid">
+          <div>
+            <label>Código (SKU)</label>
+            <input type="text" id="p-sku" placeholder="COL-KIN-002" required />
+          </div>
+          <div>
+            <label>Modelo / Descripción</label>
+            <input type="text" id="p-modelo" placeholder="Colcha térmica King" required />
+          </div>
+          <div>
+            <label>Tamaño</label>
+            <select id="p-tamano">
+              <option>Individual</option>
+              <option>Matrimonial</option>
+              <option>Queen</option>
+              <option>King Size</option>
+              <option>Infantil</option>
+            </select>
+          </div>
+          <div>
+            <label>Color</label>
+            <input type="text" id="p-color" placeholder="Gris / Vino" />
+          </div>
+          <div>
+            <label>📍 Ubicación en tienda</label>
+            <select id="p-ubicacion">
+              <option value="Estante / Tienda">🏪 Estante / Tienda</option>
+              <option value="Bodega">📦 Bodega</option>
+              <option value="Con mi hermana">👩 Con mi hermana</option>
+              <option value="Exhibidor principal">✨ Exhibidor principal</option>
+            </select>
+          </div>
+          <div>
+            <label>📸 Foto de la colcha (opcional)</label>
+            <input type="file" id="p-foto" accept="image/*" style="padding:7px 10px; font-size:12px;" />
+          </div>
+          <div>
+            <label>Stock inicial</label>
+            <input type="number" id="p-inicial" min="0" value="0" required />
+          </div>
+          <div>
+            <label>Costo unitario</label>
+            <input type="number" id="p-costo" min="0" step="0.01" required />
+          </div>
+          <div>
+            <label>Precio venta</label>
+            <input type="number" id="p-precio" min="0" step="0.01" required />
+          </div>
+          <div>
+            <label>Stock mínimo</label>
+            <input type="number" id="p-min" min="0" value="2" required />
+          </div>
+          <div>
+            <button type="submit" class="btn success" style="width:100%;">Agregar modelo</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>Historial de entradas</h2>
+        <div class="table-wrap"><table id="tabla-entradas"></table></div>
+      </div>
+    </section>
+
+    <!-- PESTAÑA 3: VENTAS -->
+    <section id="tab-ventas" class="section-hidden">
+      <div class="card">
+        <h2>💰 Registrar nueva venta</h2>
+        <form id="form-venta" class="form-grid">
+          <div>
+            <label>Fecha de venta</label>
+            <input type="date" id="v-fecha" required />
+          </div>
+          <div>
+            <label>Modelo de colcha</label>
+            <select id="v-sku" required></select>
+          </div>
+          <div>
+            <label>Cantidad vendida</label>
+            <input type="number" id="v-cantidad" min="1" value="1" required />
+          </div>
+          <div>
+            <label>Precio unitario (MXN)</label>
+            <input type="number" id="v-precio" min="0" step="0.01" required />
+          </div>
+          <div>
+            <label>Nombre de la clienta</label>
+            <input type="text" id="v-cliente" placeholder="Ej. Sra. Rosa Martínez" required />
+          </div>
+          <div>
+            <label>Modalidad de pago</label>
+            <select id="v-modalidad">
+              <option value="contado">💵 De contado (pagado completo)</option>
+              <option value="pagos">📅 En pagos / Abonos</option>
+            </select>
+          </div>
+          <div id="grupo-enganche" class="section-hidden">
+            <label>Enganche / Primer pago (MXN)</label>
+            <input type="number" id="v-enganche" min="0" step="0.01" value="0" />
+            <div id="preview-saldo-venta" class="muted" style="font-size:11px; margin-top:4px; font-weight:700; color:var(--primary);"></div>
+          </div>
+          <div id="grupo-proximo-cobro" class="section-hidden">
+            <label>Fecha próximo cobro</label>
+            <input type="date" id="v-proximo-cobro" />
+          </div>
+          <div>
+            <label>Dirección / Teléfono / Nota</label>
+            <input type="text" id="v-nota" placeholder="Ej. Calle 5, abona los sábados" />
+          </div>
+          <div>
+            <button type="submit" class="btn primary" style="width:100%;">Registrar venta</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>Historial de ventas</h2>
+        <div class="table-wrap"><table id="tabla-ventas"></table></div>
+      </div>
+    </section>
+
+    <!-- PESTAÑA 4: CLIENTES Y CALENDARIO DE COBRANZA -->
+    <section id="tab-clientes" class="section-hidden">
+      <div class="card">
+        <div class="cal-header">
+          <div>
+            <h2 style="margin:0;">📅 Calendario de Cobranza</h2>
+            <small class="muted">Toca un día marcado en amarillo para registrar el abono de esa clienta</small>
+          </div>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <button class="btn" id="cal-prev">◀</button>
+            <strong id="cal-mes-titulo" style="min-width:135px; text-align:center; text-transform:capitalize;"></strong>
+            <button class="btn" id="cal-next">▶</button>
+          </div>
+        </div>
+        <div class="cal-grid" id="calendario-cobros"></div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+          <div>
+            <h2 style="margin:0;">📒 Libreta Digital de Clientas y Saldos</h2>
+            <small class="muted">Cada renglón muestra su tarjeta de abonos con fechas y saldo restante</small>
+          </div>
+          <input type="text" id="buscar-cliente" placeholder="Buscar nombre de clienta..." style="max-width:250px;" />
+        </div>
+        <div class="table-wrap">
+          <table id="tabla-clientes"></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- PESTAÑA 5: RESUMEN -->
+    <section id="tab-resumen" class="section-hidden">
+      <div class="card">
+        <h2>Resumen por tamaño</h2>
+        <div class="table-wrap"><table id="tabla-resumen"></table></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- MODAL PARA REGISTRAR ABONO -->
+  <div id="modal-abono" class="modal-backdrop section-hidden">
+    <div class="modal-box">
+      <h2 style="margin-top:0;">💵 Registrar abono de clienta</h2>
+      <p id="abono-info-cliente" style="font-size:13px; margin-bottom:12px;"></p>
+      <form id="form-abono">
+        <input type="hidden" id="abono-venta-id" />
+        <div style="margin-bottom:10px;">
+          <label>Monto que abona hoy (MXN)</label>
+          <input type="number" id="abono-monto" min="1" step="0.01" required />
+          <div id="preview-resta-abono" style="font-size:12px; margin-top:4px; font-weight:700; color:var(--success);"></div>
+        </div>
+        <div style="margin-bottom:14px;" id="grupo-abono-proxima">
+          <label>Fecha del siguiente cobro (si aún queda saldo)</label>
+          <input type="date" id="abono-proxima-fecha" />
+        </div>
+        <div style="display:flex; gap:8px; justify-content:flex-end;">
+          <button type="button" class="btn" id="btn-cerrar-modal">Cancelar</button>
+          <button type="submit" class="btn success">Guardar abono</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast section-hidden"></div>
+
+  <!-- MODAL PARA VER FOTO EN GRANDE O EDITAR UBICACIÓN/FOTO -->
+  <div id="modal-detalle" class="modal-backdrop section-hidden">
+    <div class="modal-box" style="max-width:440px;">
+      <h2 id="det-titulo" style="margin-top:0; margin-bottom:8px;">Detalle de colcha</h2>
+      <div id="det-foto-wrap" style="text-align:center; margin-bottom:14px;"></div>
+      <div style="margin-bottom:12px;">
+        <label>📍 Cambiar ubicación actual</label>
+        <select id="det-ubicacion">
+          <option value="Estante / Tienda">🏪 Estante / Tienda</option>
+          <option value="Bodega">📦 Bodega</option>
+          <option value="Con mi hermana">👩 Con mi hermana</option>
+          <option value="Exhibidor principal">✨ Exhibidor principal</option>
+        </select>
+      </div>
+      <div style="margin-bottom:16px;">
+        <label>📸 Actualizar / Subir foto</label>
+        <input type="file" id="det-foto-input" accept="image/*" style="padding:7px 10px; font-size:12px;" />
+      </div>
+      <div style="display:flex; gap:8px; justify-content:flex-end;">
+        <button type="button" class="btn" id="btn-cerrar-detalle">Cerrar</button>
+        <button type="button" class="btn primary" id="btn-guardar-detalle">Guardar cambios</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE CONFIRMACIÓN PARA RESTABLECER DATOS -->
+  <div id="modal-reset" class="modal-backdrop section-hidden">
+    <div class="modal-box">
+      <h2 style="margin-top:0;">🔄 Restablecer datos</h2>
+      <p style="font-size:13px; margin-bottom:16px;">¿Seguro que quieres borrar <strong>TODOS</strong> los datos y volver al inventario inicial? Esta acción no se puede deshacer. Haz un respaldo primero si ya registraste ventas.</p>
+      <div style="display:flex; gap:8px; justify-content:flex-end;">
+        <button type="button" class="btn" id="btn-cancelar-reset">Cancelar</button>
+        <button type="button" class="btn danger" id="btn-confirmar-reset" style="background:var(--danger); color:#fff; font-weight:600;">Sí, borrar todo</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'colchas_inventario_v3'; // v3: inicio vacío, sin datos de ejemplo
+    const fmtM = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
+    const num = v => Number(v) || 0;
+
+    function getFechaHoyStr() {
+      const d = new Date();
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
+    function sumarDiasStr(fechaStr, dias) {
+      const d = new Date(fechaStr + 'T12:00:00');
+      d.setDate(d.getDate() + dias);
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.remove('section-hidden');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => t.classList.add('section-hidden'), 3200);
+    }
+
+    // Comprime imágenes para que no saturen la memoria del dispositivo
+    function comprimirImagen(file) {
+      return new Promise((resolve) => {
+        if (!file) return resolve('');
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const maxDim = 420;
+            let w = img.width;
+            let h = img.height;
+            if (w > h && w > maxDim) { h = Math.round((h * maxDim) / w); w = maxDim; }
+            else if (h > maxDim) { w = Math.round((w * maxDim) / h); h = maxDim; }
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL('image/jpeg', 0.72));
+          };
+          img.onerror = () => resolve('');
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // La app empieza vacía: cada quien registra sus propios modelos desde cero
+    // en Entradas / Compras → Registrar modelo nuevo.
+    const DATOS_INICIALES = {
+      productos: [],
+      entradas: [],
+      ventas: []
+    };
+
+    let state;
+    try {
+      state = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') || structuredClone(DATOS_INICIALES);
+    } catch (e) {
+      state = structuredClone(DATOS_INICIALES);
+    }
+    let calFecha = new Date();
+
+    function guardarDatos() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      renderTodo();
+    }
+
+    function calcularStock(sku) {
+      const p = state.productos.find(x => x.sku === sku);
+      if (!p) return 0;
+      const ent = state.entradas.filter(e => e.sku === sku).reduce((s, e) => s + num(e.cantidad), 0);
+      const ven = state.ventas.filter(v => v.sku === sku).reduce((s, v) => s + num(v.cantidad), 0);
+      return num(p.inicial) + ent - ven;
+    }
+
+    function renderKPIs() {
+      let stockTotal = 0;
+      let valorCosto = 0;
+      state.productos.forEach(p => {
+        const st = calcularStock(p.sku);
+        stockTotal += st;
+        valorCosto += st * num(p.costo);
+      });
+
+      let porCobrar = 0;
+      let utilidad = 0;
+      state.ventas.forEach(v => {
+        porCobrar += num(v.saldo);
+        const prod = state.productos.find(p => p.sku === v.sku);
+        const costoUnit = prod ? num(prod.costo) : 0;
+        utilidad += (num(v.precio) - costoUnit) * num(v.cantidad);
+      });
+
+      document.getElementById('kpi-stock').textContent = stockTotal;
+      document.getElementById('kpi-costo').textContent = fmtM.format(valorCosto);
+      document.getElementById('kpi-por-cobrar').textContent = fmtM.format(porCobrar);
+      document.getElementById('kpi-utilidad').textContent = fmtM.format(utilidad);
+    }
+
+    function renderInventario() {
+      const q = document.getElementById('buscar-inv').value.toLowerCase().trim();
+      const filtroUb = document.getElementById('filtro-ubicacion').value;
+      const tabla = document.getElementById('tabla-inventario');
+      tabla.innerHTML = '<thead><tr><th>Foto</th><th>Código / Modelo</th><th>Tamaño / Color</th><th>📍 Ubicación</th><th class="num">Disponibles</th><th class="num">Costo</th><th class="num">Precio Venta</th><th>Estado</th></tr></thead><tbody></tbody>';
+      const tbody = tabla.querySelector('tbody');
+
+      const filtrados = state.productos.filter(p => {
+        const matchTexto = p.sku.toLowerCase().includes(q) || p.modelo.toLowerCase().includes(q) || p.tamano.toLowerCase().includes(q);
+        const ubActual = p.ubicacion || 'Estante / Tienda';
+        const matchUb = !filtroUb || ubActual === filtroUb;
+        return matchTexto && matchUb;
+      });
+
+      if (filtrados.length === 0) {
+        const vacio = state.productos.length === 0;
+        tbody.innerHTML = '<tr><td colspan="8" class="muted" style="text-align:center; padding:18px;">' + (vacio ? 'Aún no hay modelos registrados.<br>Agrega el primero en la pestaña <strong>Entradas / Compras</strong> → <strong>Registrar modelo nuevo</strong>.' : 'No hay modelos que coincidan.') + '</td></tr>';
+        return;
+      }
+
+      filtrados.forEach(p => {
+        const st = calcularStock(p.sku);
+        let badge = `<span class="badge ok">Disponible</span>`;
+        if (st <= 0) badge = `<span class="badge low">Agotado</span>`;
+        else if (st <= num(p.min)) badge = `<span class="badge warn">Stock bajo</span>`;
+
+        const ub = p.ubicacion || 'Estante / Tienda';
+        const fotoHtml = p.foto
+          ? `<img src="${p.foto}" alt="${p.modelo}" class="thumb-colcha" data-ver="${p.sku}" />`
+          : `<div class="thumb-placeholder" title="Toca para agregar foto" data-ver="${p.sku}">📷</div>`;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${fotoHtml}</td>
+          <td><strong>${p.modelo}</strong><div class="muted" style="font-size:11px;">${p.sku}</div></td>
+          <td>${p.tamano} · <span class="muted">${p.color || 'N/A'}</span></td>
+          <td><span class="badge loc" data-ver="${p.sku}">📍 ${ub}</span></td>
+          <td class="num"><strong>${st}</strong></td>
+          <td class="num money">${fmtM.format(p.costo)}</td>
+          <td class="num money"><strong>${fmtM.format(p.precio)}</strong></td>
+          <td>${badge}</td>
+        `;
+        tr.querySelectorAll('[data-ver]').forEach(el => {
+          el.onclick = () => abrirModalDetalle(p.sku);
+        });
+        tbody.appendChild(tr);
+      });
+    }
+
+    let skuDetalleActual = null;
+    function abrirModalDetalle(sku) {
+      const p = state.productos.find(x => x.sku === sku);
+      if (!p) return;
+      skuDetalleActual = sku;
+      document.getElementById('det-titulo').textContent = `${p.modelo} (${p.sku})`;
+      document.getElementById('det-ubicacion').value = p.ubicacion || 'Estante / Tienda';
+      document.getElementById('det-foto-input').value = '';
+      const wrap = document.getElementById('det-foto-wrap');
+      wrap.innerHTML = p.foto
+        ? `<img src="${p.foto}" style="max-width:100%; max-height:240px; border-radius:16px; border:1px solid var(--border);" />`
+        : `<div style="padding:28px; background:#f5f5f7; border-radius:16px; color:var(--muted); font-size:13px;">Sin foto aún. Selecciona abajo la foto que te mandó tu mamá.</div>`;
+      document.getElementById('modal-detalle').classList.remove('section-hidden');
+    }
+
+    function renderSelects() {
+      const selE = document.getElementById('e-sku');
+      const selV = document.getElementById('v-sku');
+      const valE = selE.value;
+      const valV = selV.value;
+
+      selE.innerHTML = '';
+      selV.innerHTML = '';
+
+      state.productos.forEach(p => {
+        const st = calcularStock(p.sku);
+        const opt1 = new Option(`${p.sku} - ${p.modelo} (Stock: ${st})`, p.sku);
+        const opt2 = new Option(`${p.sku} - ${p.modelo} (Disp: ${st})`, p.sku);
+        selE.add(opt1);
+        selV.add(opt2);
+      });
+
+      if (valE) selE.value = valE;
+      if (valV) selV.value = valV;
+
+      // Actualizar costo/precio sugerido según modelo seleccionado
+      const prodE = state.productos.find(p => p.sku === selE.value);
+      if (prodE && !document.getElementById('e-costo').value) {
+        document.getElementById('e-costo').value = prodE.costo;
+      }
+      const prodV = state.productos.find(p => p.sku === selV.value);
+      if (prodV && !document.getElementById('v-precio').value) {
+        document.getElementById('v-precio').value = prodV.precio;
+      }
+    }
+
+    function renderEntradas() {
+      const tabla = document.getElementById('tabla-entradas');
+      tabla.innerHTML = '<thead><tr><th>Fecha</th><th>Código</th><th>Modelo</th><th class="num">Cantidad</th><th class="num">Costo Unit.</th><th>Proveedor</th></tr></thead><tbody></tbody>';
+      const tbody = tabla.querySelector('tbody');
+      [...state.entradas].reverse().forEach(e => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${e.fecha}</td><td>${e.sku}</td><td>${e.modelo}</td><td class="num">+${e.cantidad}</td><td class="num money">${fmtM.format(e.costo)}</td><td>${e.proveedor || '—'}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderVentas() {
+      const tabla = document.getElementById('tabla-ventas');
+      tabla.innerHTML = '<thead><tr><th>Fecha</th><th>Clienta</th><th>Modelo</th><th class="num">Cant.</th><th class="num">Total</th><th>Modalidad</th></tr></thead><tbody></tbody>';
+      const tbody = tabla.querySelector('tbody');
+      [...state.ventas].reverse().forEach(v => {
+        const saldo = num(v.saldo);
+        const badge = saldo > 0
+          ? `<span class="badge credito">En pagos (Resta ${fmtM.format(saldo)})</span>`
+          : `<span class="badge ok">Pagado</span>`;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${v.fecha}</td><td><strong>${v.cliente}</strong></td><td>${v.modelo}</td><td class="num">${v.cantidad}</td><td class="num money">${fmtM.format(v.importe)}</td><td>${badge}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderClientes() {
+      const q = document.getElementById('buscar-cliente').value.toLowerCase().trim();
+      const el = document.getElementById('tabla-clientes');
+      el.innerHTML = '<thead><tr><th>Clienta</th><th>Compra e Historial de Pagos</th><th class="num">Total</th><th class="num">Abonado</th><th class="num">Saldo Pendiente</th><th>Próximo Cobro</th><th>Acción</th></tr></thead><tbody></tbody>';
+      const tbody = el.querySelector('tbody');
+
+      const filtradas = state.ventas.filter(v =>
+        v.cliente.toLowerCase().includes(q) || v.modelo.toLowerCase().includes(q)
+      );
+
+      if (filtradas.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="muted" style="text-align:center; padding:16px;">No hay clientas registradas con ese criterio.</td></tr>';
+        return;
+      }
+
+      // Mostrar primero a las clientas que aún tienen saldo pendiente
+      const ordenadas = [...filtradas].sort((a, b) => num(b.saldo) - num(a.saldo));
+
+      ordenadas.forEach(v => {
+        const total = num(v.importe);
+        const pagado = v.pagado !== undefined ? num(v.pagado) : total;
+        const saldo = v.saldo !== undefined ? num(v.saldo) : 0;
+
+        // Tarjeta de historial de abonos con fecha y monto
+        const listaAbonos = Array.isArray(v.historialPagos) && v.historialPagos.length > 0
+          ? v.historialPagos.map(h => `• ${h.concepto}: <strong>${fmtM.format(h.monto)}</strong> <span class="muted">(${h.fecha})</span>`).join('<br>')
+          : (pagado > 0 ? `• Pago inicial: <strong>${fmtM.format(pagado)}</strong> <span class="muted">(${v.fecha})</span>` : '• Sin abonos iniciales');
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${v.cliente}</strong><div class="muted" style="font-size:11px;">${v.nota || ''}</div></td>
+          <td>
+            <div><strong>${v.cantidad}x ${v.modelo}</strong> <span class="muted" style="font-size:11px;">(Venta: ${v.fecha})</span></div>
+            <div style="font-size:11px; color:#059669; margin-top:4px; line-height:1.4;">${listaAbonos}</div>
+          </td>
+          <td class="num money">${fmtM.format(total)}</td>
+          <td class="num money" style="color:#059669; font-weight:600;">${fmtM.format(pagado)}</td>
+          <td class="num money" style="color:${saldo > 0 ? '#dc2626' : '#6b7280'}; font-weight:700;">${fmtM.format(saldo)}</td>
+          <td>${saldo > 0 ? `<span class="badge credito">📅 ${v.proximoCobro || 'Sin fecha'}</span>` : '<span class="badge ok">Liquidado</span>'}</td>
+          <td>${saldo > 0 ? `<button class="btn success" style="padding:6px 12px; font-size:12px;" data-abonar="${v.id}">💵 Abonar</button>` : '—'}</td>
+        `;
+        const btnAbonar = tr.querySelector('[data-abonar]');
+        if (btnAbonar) btnAbonar.onclick = () => abrirModalAbono(v.id);
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderCalendario() {
+      const year = calFecha.getFullYear();
+      const month = calFecha.getMonth();
+      const nombreMes = calFecha.toLocaleDateString('es-MX', { month: 'long', year: 'numeric' });
+      document.getElementById('cal-mes-titulo').textContent = nombreMes;
+
+      const grid = document.getElementById('calendario-cobros');
+      grid.innerHTML = '';
+
+      ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].forEach(d => {
+        const div = document.createElement('div');
+        div.className = 'cal-day-name';
+        div.textContent = d;
+        grid.appendChild(div);
+      });
+
+      const primerDia = new Date(year, month, 1).getDay();
+      const diasEnMes = new Date(year, month + 1, 0).getDate();
+      const hoyStr = getFechaHoyStr();
+
+      for (let i = 0; i < primerDia; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'cal-cell empty';
+        grid.appendChild(empty);
+      }
+
+      for (let d = 1; d <= diasEnMes; d++) {
+        const fechaDia = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const cobrosDia = state.ventas.filter(v => num(v.saldo) > 0 && v.proximoCobro === fechaDia);
+
+        const cell = document.createElement('div');
+        cell.className = 'cal-cell' + (fechaDia === hoyStr ? ' today' : '') + (cobrosDia.length > 0 ? ' has-cobro' : '');
+        cell.innerHTML = `<span class="cal-num">${d}</span>`;
+
+        cobrosDia.forEach(c => {
+          const tag = document.createElement('span');
+          tag.className = 'cal-tag';
+          tag.textContent = `${c.cliente} (${fmtM.format(c.saldo)})`;
+          tag.title = `Cobrar a ${c.cliente} - Resta ${fmtM.format(c.saldo)}`;
+          tag.onclick = (ev) => {
+            ev.stopPropagation();
+            abrirModalAbono(c.id);
+          };
+          cell.appendChild(tag);
+        });
+
+        if (cobrosDia.length === 1) {
+          cell.onclick = () => abrirModalAbono(cobrosDia[0].id);
+        }
+
+        grid.appendChild(cell);
+      }
+    }
+
+    function renderResumen() {
+      const tabla = document.getElementById('tabla-resumen');
+      tabla.innerHTML = '<thead><tr><th>Tamaño</th><th class="num">Modelos</th><th class="num">Piezas disponibles</th><th class="num">Valor en costo</th></tr></thead><tbody></tbody>';
+      const tbody = tabla.querySelector('tbody');
+
+      const grupos = {};
+      state.productos.forEach(p => {
+        if (!grupos[p.tamano]) grupos[p.tamano] = { modelos: 0, stock: 0, valor: 0 };
+        const st = calcularStock(p.sku);
+        grupos[p.tamano].modelos += 1;
+        grupos[p.tamano].stock += st;
+        grupos[p.tamano].valor += st * num(p.costo);
+      });
+
+      Object.entries(grupos).forEach(([tam, info]) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td><strong>${tam}</strong></td><td class="num">${info.modelos}</td><td class="num">${info.stock}</td><td class="num money">${fmtM.format(info.valor)}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderTodo() {
+      renderKPIs();
+      renderInventario();
+      renderSelects();
+      renderEntradas();
+      renderVentas();
+      renderClientes();
+      renderCalendario();
+      renderResumen();
+    }
+
+    // Vista previa en vivo de la resta al registrar venta a pagos
+    function actualizarPreviewSaldoVenta() {
+      const cant = parseInt(document.getElementById('v-cantidad').value) || 0;
+      const precio = num(document.getElementById('v-precio').value);
+      const enganche = num(document.getElementById('v-enganche').value);
+      const total = cant * precio;
+      const resta = Math.max(0, total - enganche);
+      const el = document.getElementById('preview-saldo-venta');
+      if (el) {
+        el.textContent = total > 0 ? `Total: ${fmtM.format(total)} − Enganche: ${fmtM.format(enganche)} = Resta: ${fmtM.format(resta)}` : '';
+      }
+    }
+
+    // Modal de abono
+    let ventaAbonoActual = null;
+    function abrirModalAbono(ventaId) {
+      const v = state.ventas.find(x => x.id === ventaId);
+      if (!v) return;
+      ventaAbonoActual = v;
+      document.getElementById('abono-venta-id').value = v.id;
+      document.getElementById('abono-info-cliente').innerHTML = `
+        <strong>Clienta:</strong> ${v.cliente}<br>
+        <strong>Compra:</strong> ${v.cantidad}x ${v.modelo} (Total: ${fmtM.format(v.importe)})<br>
+        <strong>Saldo actual que debe:</strong> <span style="color:#dc2626; font-weight:700;">${fmtM.format(v.saldo)}</span>
+      `;
+      const inpMonto = document.getElementById('abono-monto');
+      inpMonto.value = '';
+      inpMonto.max = num(v.saldo);
+      document.getElementById('abono-proxima-fecha').value = sumarDiasStr(getFechaHoyStr(), 7);
+      actualizarPreviewRestaAbono();
+      document.getElementById('modal-abono').classList.remove('section-hidden');
+    }
+
+    function actualizarPreviewRestaAbono() {
+      if (!ventaAbonoActual) return;
+      const abono = num(document.getElementById('abono-monto').value);
+      const resta = Math.max(0, num(ventaAbonoActual.saldo) - abono);
+      document.getElementById('preview-resta-abono').textContent =
+        `Saldo actual: ${fmtM.format(ventaAbonoActual.saldo)} − Abono: ${fmtM.format(abono)} = Nuevo saldo restante: ${fmtM.format(resta)}`;
+      document.getElementById('grupo-abono-proxima').style.display = resta > 0 ? 'block' : 'none';
+    }
+
+    // Eventos de interfaz
+    document.querySelectorAll('.tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        const target = btn.dataset.tab;
+        ['inventario', 'entradas', 'ventas', 'clientes', 'resumen'].forEach(sec => {
+          document.getElementById('tab-' + sec).classList.toggle('section-hidden', sec !== target);
+        });
+      });
+    });
+
+    document.getElementById('buscar-inv').addEventListener('input', renderInventario);
+    document.getElementById('filtro-ubicacion').addEventListener('change', renderInventario);
+    document.getElementById('buscar-cliente').addEventListener('input', renderClientes);
+
+    document.getElementById('btn-cerrar-detalle').addEventListener('click', () => {
+      document.getElementById('modal-detalle').classList.add('section-hidden');
+    });
+
+    document.getElementById('btn-guardar-detalle').addEventListener('click', async () => {
+      const p = state.productos.find(x => x.sku === skuDetalleActual);
+      if (!p) return;
+      p.ubicacion = document.getElementById('det-ubicacion').value;
+      const file = document.getElementById('det-foto-input').files[0];
+      if (file) {
+        p.foto = await comprimirImagen(file);
+      }
+      guardarDatos();
+      document.getElementById('modal-detalle').classList.add('section-hidden');
+      showToast(`✅ Ubicación y foto actualizadas para ${p.modelo}`);
+    });
+
+    document.getElementById('e-sku').addEventListener('change', e => {
+      const p = state.productos.find(x => x.sku === e.target.value);
+      if (p) document.getElementById('e-costo').value = p.costo;
+    });
+
+    document.getElementById('v-sku').addEventListener('change', e => {
+      const p = state.productos.find(x => x.sku === e.target.value);
+      if (p) {
+        document.getElementById('v-precio').value = p.precio;
+        actualizarPreviewSaldoVenta();
+      }
+    });
+
+    document.getElementById('v-modalidad').addEventListener('change', e => {
+      const esPagos = e.target.value === 'pagos';
+      document.getElementById('grupo-enganche').classList.toggle('section-hidden', !esPagos);
+      document.getElementById('grupo-proximo-cobro').classList.toggle('section-hidden', !esPagos);
+      if (esPagos) {
+        document.getElementById('v-proximo-cobro').value = sumarDiasStr(getFechaHoyStr(), 7);
+        actualizarPreviewSaldoVenta();
+      }
+    });
+
+    ['v-cantidad', 'v-precio', 'v-enganche'].forEach(id => {
+      document.getElementById(id).addEventListener('input', actualizarPreviewSaldoVenta);
+    });
+
+    document.getElementById('abono-monto').addEventListener('input', actualizarPreviewRestaAbono);
+    document.getElementById('btn-cerrar-modal').addEventListener('click', () => {
+      document.getElementById('modal-abono').classList.add('section-hidden');
+    });
+
+    // Guardar entrada (reabastecer)
+    document.getElementById('form-entrada').addEventListener('submit', e => {
+      e.preventDefault();
+      const sku = document.getElementById('e-sku').value;
+      const p = state.productos.find(x => x.sku === sku);
+      if (!p) return;
+      const cantidad = parseInt(document.getElementById('e-cantidad').value);
+      const costo = num(document.getElementById('e-costo').value);
+      p.costo = costo;
+
+      state.entradas.push({
+        id: Date.now(),
+        fecha: document.getElementById('e-fecha').value,
+        sku,
+        modelo: p.modelo,
+        cantidad,
+        costo,
+        proveedor: document.getElementById('e-proveedor').value.trim()
+      });
+      guardarDatos();
+      e.target.reset();
+      document.getElementById('e-fecha').value = getFechaHoyStr();
+      showToast(`✅ Se sumaron +${cantidad} piezas a ${p.modelo}`);
+    });
+
+    // Guardar modelo nuevo
+    document.getElementById('form-producto').addEventListener('submit', async e => {
+      e.preventDefault();
+      const sku = document.getElementById('p-sku').value.trim().toUpperCase();
+      if (state.productos.some(x => x.sku === sku)) {
+        showToast('⚠️ Ese código SKU ya existe. Usa "Reabastecer stock".');
+        return;
+      }
+      const fotoFile = document.getElementById('p-foto').files[0];
+      const fotoBase64 = await comprimirImagen(fotoFile);
+
+      state.productos.push({
+        sku,
+        modelo: document.getElementById('p-modelo').value.trim(),
+        tamano: document.getElementById('p-tamano').value,
+        color: document.getElementById('p-color').value.trim(),
+        ubicacion: document.getElementById('p-ubicacion').value,
+        foto: fotoBase64,
+        inicial: parseInt(document.getElementById('p-inicial').value) || 0,
+        costo: num(document.getElementById('p-costo').value),
+        precio: num(document.getElementById('p-precio').value),
+        min: parseInt(document.getElementById('p-min').value) || 1
+      });
+      guardarDatos();
+      e.target.reset();
+      showToast(`🆕 Modelo ${sku} agregado con su ubicación`);
+    });
+
+    // Guardar venta
+    document.getElementById('form-venta').addEventListener('submit', e => {
+      e.preventDefault();
+      const sku = document.getElementById('v-sku').value;
+      const p = state.productos.find(x => x.sku === sku);
+      if (!p) return;
+
+      const cantidad = parseInt(document.getElementById('v-cantidad').value);
+      const stockDisp = calcularStock(sku);
+      if (cantidad > stockDisp) {
+        showToast(`⚠️ Solo tienes ${stockDisp} piezas disponibles de este modelo.`);
+        return;
+      }
+
+      const precio = num(document.getElementById('v-precio').value);
+      const importe = cantidad * precio;
+      const modalidad = document.getElementById('v-modalidad').value;
+      const fechaVenta = document.getElementById('v-fecha').value;
+
+      let pagado = importe;
+      let saldo = 0;
+      let proximoCobro = '';
+      let historialPagos = [];
+
+      if (modalidad === 'pagos') {
+        const enganche = Math.min(importe, Math.max(0, num(document.getElementById('v-enganche').value)));
+        pagado = enganche;
+        saldo = Math.max(0, importe - enganche);
+        proximoCobro = saldo > 0 ? document.getElementById('v-proximo-cobro').value : '';
+        if (enganche > 0) {
+          historialPagos.push({ fecha: fechaVenta, monto: enganche, concepto: 'Enganche' });
+        }
+      } else {
+        historialPagos.push({ fecha: fechaVenta, monto: importe, concepto: 'Pago de contado' });
+      }
+
+      state.ventas.push({
+        id: Date.now(),
+        fecha: fechaVenta,
+        sku,
+        modelo: p.modelo,
+        cantidad,
+        precio,
+        importe,
+        pagado,
+        saldo,
+        proximoCobro,
+        historialPagos,
+        cliente: document.getElementById('v-cliente').value.trim(),
+        nota: document.getElementById('v-nota').value.trim()
+      });
+
+      guardarDatos();
+      e.target.reset();
+      document.getElementById('v-fecha').value = getFechaHoyStr();
+      document.getElementById('grupo-enganche').classList.add('section-hidden');
+      document.getElementById('grupo-proximo-cobro').classList.add('section-hidden');
+      showToast(saldo > 0
+        ? `📅 Venta guardada. Enganche: ${fmtM.format(pagado)} | Resta: ${fmtM.format(saldo)}`
+        : `💰 Venta de contado registrada por ${fmtM.format(importe)}`);
+    });
+
+    // Guardar abono
+    document.getElementById('form-abono').addEventListener('submit', e => {
+      e.preventDefault();
+      const id = Number(document.getElementById('abono-venta-id').value);
+      const v = state.ventas.find(x => x.id === id);
+      if (!v) return;
+
+      const saldoActual = num(v.saldo);
+      const monto = Math.min(saldoActual, Math.max(0, num(document.getElementById('abono-monto').value)));
+      if (monto <= 0) return;
+
+      v.pagado = (v.pagado !== undefined ? num(v.pagado) : (num(v.importe) - saldoActual)) + monto;
+      v.saldo = Math.max(0, saldoActual - monto);
+
+      if (!Array.isArray(v.historialPagos)) {
+        v.historialPagos = v.pagado - monto > 0 ? [{ fecha: v.fecha, monto: v.pagado - monto, concepto: 'Enganche' }] : [];
+      }
+      v.historialPagos.push({ fecha: getFechaHoyStr(), monto, concepto: 'Abono' });
+
+      v.proximoCobro = v.saldo > 0 ? document.getElementById('abono-proxima-fecha').value : '';
+
+      guardarDatos();
+      document.getElementById('modal-abono').classList.add('section-hidden');
+      showToast(v.saldo > 0
+        ? `💵 Abono de ${fmtM.format(monto)} guardado. Resta: ${fmtM.format(v.saldo)}`
+        : `🎉 ¡Cuenta de ${v.cliente} liquidada por completo!`);
+    });
+
+    // Navegación del calendario
+    document.getElementById('cal-prev').addEventListener('click', () => {
+      calFecha.setMonth(calFecha.getMonth() - 1);
+      renderCalendario();
+    });
+    document.getElementById('cal-next').addEventListener('click', () => {
+      calFecha.setMonth(calFecha.getMonth() + 1);
+      renderCalendario();
+    });
+
+    // Exportar / Importar / Reiniciar
+    document.getElementById('btn-export-json').addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `respaldo-colchas-${getFechaHoyStr()}.json`;
+      a.click();
+    });
+
+    document.getElementById('input-import-json').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        try {
+          const data = JSON.parse(ev.target.result);
+          if (data.productos && data.ventas) {
+            state = data;
+            guardarDatos();
+            showToast('📂 Respaldo restaurado correctamente');
+          }
+        } catch {
+          showToast('⚠️ El archivo de respaldo no es válido');
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    document.getElementById('btn-export-csv').addEventListener('click', () => {
+      const filas = [['SKU', 'Modelo', 'Tamano', 'Color', 'Disponibles', 'Costo', 'Precio']];
+      state.productos.forEach(p => {
+        filas.push([p.sku, p.modelo, p.tamano, p.color, calcularStock(p.sku), p.costo, p.precio]);
+      });
+      const csv = filas.map(r => r.join(',')).join('\n');
+      const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `inventario-colchas-${getFechaHoyStr()}.csv`;
+      a.click();
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      document.getElementById('modal-reset').classList.remove('section-hidden');
+    });
+
+    document.getElementById('btn-cancelar-reset').addEventListener('click', () => {
+      document.getElementById('modal-reset').classList.add('section-hidden');
+    });
+
+    document.getElementById('btn-confirmar-reset').addEventListener('click', () => {
+      state = structuredClone(DATOS_INICIALES);
+      guardarDatos();
+      document.getElementById('modal-reset').classList.add('section-hidden');
+      showToast('🔄 Datos restablecidos al inventario inicial');
+    });
+
+    // Modo claro / oscuro (se guarda en este celular)
+    const btnTema = document.getElementById('btn-tema');
+    if (localStorage.getItem('colchas_tema') === 'oscuro') {
+      document.body.classList.add('dark');
+    }
+    function actualizarBtnTema() {
+      const oscuro = document.body.classList.contains('dark');
+      btnTema.textContent = oscuro ? '☀️ Claro' : '🌙 Oscuro';
+    }
+    btnTema.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+      localStorage.setItem('colchas_tema', document.body.classList.contains('dark') ? 'oscuro' : 'claro');
+      actualizarBtnTema();
+    });
+    actualizarBtnTema();
+
+    // Inicialización al cargar
+    window.addEventListener('DOMContentLoaded', () => {
+      const hoy = getFechaHoyStr();
+      document.getElementById('e-fecha').value = hoy;
+      document.getElementById('v-fecha').value = hoy;
+      renderTodo();
+    });
+  </script>
+</body>
+</html>
